@@ -2,7 +2,7 @@
   {
     "name": "Aquecer a alma",
     "imageUrl": "",
-    "region": "",
+    "area": "",
     "country": "Portugal",
     "coordinates": {
       "latitude": "10",
@@ -14,7 +14,7 @@
   {
     "name": "Gaivota esotérica",
     "imageUrl": "",
-    "region": "",
+    "area": "",
     "country": "Portugal",
     "coordinates": {
       "latitude": "20",
@@ -26,7 +26,7 @@
   {
     "name": "Moura Encantada",
     "imageUrl": "",
-    "region": "Rocha da Pena",
+    "area": "Rocha da Pena",
     "country": "Portugal",
     "coordinates": { "latitude": "30", "longitude": "30" },
     "grade": "6c+",
@@ -35,7 +35,7 @@
   {
     "name": "Carpe Diem",
     "imageUrl": "",
-    "region": "Rocha da Pena",
+    "area": "Rocha da Pena",
     "country": "Portugal",
     "coordinates": { "latitude": "40", "longitude": "40" },
     "grade": "6c",

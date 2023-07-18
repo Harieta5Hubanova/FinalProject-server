@@ -108,10 +108,10 @@ router.post('/login', (req, res, next) => {
 
       if (passwordCorrect) {
         // Deconstruct the user object to omit the password
-        const { _id, email, name } = foundUser;
+        const { _id, email, name, imageUrl } = foundUser;
 
         // Create an object that will be set as the token payload
-        const payload = { _id, email, name };
+        const payload = { _id, email, name, imageUrl };
 
         // Create a JSON Web Token and sign it
         const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
@@ -149,9 +149,19 @@ router.put('/profile', isAuthenticated, async (req, res, next) => {
       return res.status(404).json({ message: 'Specified id is not valid' });
     }
 
+    const defaultImage = `https://ui-avatars.com/api/?name=${name[0]}${surname[0]}`;
+
+    let image;
+
+    if (imageUrl) {
+      image = imageUrl;
+    } else {
+      image = defaultImage;
+    }
+
     const updatedProfile = await User.findByIdAndUpdate(
       _id,
-      { name, surname, imageUrl, country, city, dob, level, equipment },
+      { name, surname, imageUrl: image, country, city, dob, level, equipment },
       { new: true } // We need to pass this to receive the updated value
     );
 

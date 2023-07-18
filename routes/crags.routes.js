@@ -1,5 +1,7 @@
 const router = require('express').Router();
 const Crags = require('../models/Crags.model');
+const Area = require('../models/Area.model');
+const User = require('../models/User.model');
 const mongoose = require('mongoose');
 const fileUploader = require('../config/cloudinary.config');
 
@@ -8,6 +10,7 @@ const fileUploader = require('../config/cloudinary.config');
 router.post('/add-crag', async (req, res, next) => {
   const { name, imageUrl, coordinates, country, area, grade } = req.body;
 
+  console.log('AREA: ', area);
   try {
     const newCrag = await Crags.create({
       name,
@@ -32,7 +35,7 @@ router.get('/crags', async (req, res, next) => {
     const allCrags = await Crags.find().populate('area');
     res.json(allCrags);
   } catch (error) {
-    console.log('An error occurred getting all projects', error);
+    console.log('An error occurred getting all routes', error);
     next(error);
   }
 });
@@ -45,13 +48,14 @@ router.get('/crags/:id', async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Specified  id is is not valid' });
     }
-    const crag = await Crag.findById(id).populate('area');
+    const crag = await Crags.findById(id).populate('area');
+
     if (!crag) {
       return res
         .status(404)
         .json({ message: 'No climbing route found with this id' });
     }
-    res.json(project);
+    res.json(crag);
   } catch (error) {
     console.log('An error occured creating the climbing route', error);
     next(error);
@@ -104,11 +108,112 @@ router.delete('/crags/:id', async (req, res, next) => {
 // route that receives the image, sends it to Cloudinary and returns teh imageUrl
 router.post('/upload', fileUploader.single('file'), (req, res, next) => {
   try {
-    res.json({ fileUrl: req.file.path });
+    res.json({ imgUrl: req.file.path });
   } catch (error) {
     res.status(500).json({ message: 'An error occured uploading the image' });
     next(error);
   }
 });
+
+//Retrieves Area
+router.get('/area', async (req, res, next) => {
+  try {
+    const allAreas = await Area.find();
+    res.json(allAreas);
+  } catch (error) {
+    console.log('An error occurred getting all areas', error);
+    next(error);
+  }
+});
+
+//Favourites
+
+router.put('/crags/favourites/:id', async (req, res, next) => {
+  const { id } = req.params;
+  const { _id } = req.payload;
+  try {
+    // Check if provided id is a valid mongoose id
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ message: 'Specified id is not valid' });
+    }
+    const crag = await Crags.findById(id);
+    const user = await User.findById(_id);
+    if (!crag) {
+      return res.status(404).json({ message: 'Crag not found' });
+    }
+    // Check if the user has already liked the crag
+
+    if (user.favourites.includes(crag._id)) {
+      return;
+    }
+
+    await User.findByIdAndUpdate(_id, {
+      $push: {
+        favourites: crag._id
+      }
+    });
+
+    const previousCount = crag.likeCount;
+
+    await Crags.findByIdAndUpdate(crag._id, {
+      likeCount: previousCount + 1
+    });
+  } catch (error) {
+    console.log('An error occurred getting the favourites', error);
+    next(error);
+  }
+});
+
+/* router.get('/crags/favourites/:id', async (req, res) => {
+  const { id } = req.params;
+  const { _id } = req.payload;
+
+  try {
+    // Check if provided id is a valid mongoose id
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ error: 'Specified id is not valid' });
+    }
+
+    const crag = await Crags.findById(id);
+    const user = await User.findById(_id);
+    if (!crag) {
+      return res.status(404).json({ error: 'Crag not found' });
+    }
+
+    // Check if the user has already liked the crag
+    const isLiked = user.favourites.includes(crag._id);
+
+    if (isLiked) {
+      // If the user already liked the crag, remove the like
+      await User.findByIdAndUpdate(_id, {
+        $pull: { favourites: crag._id }
+      });
+
+      // Decrease the crag's like count
+      await Crags.findByIdAndUpdate(crag._id, {
+        $inc: { likeCount: -1 }
+      });
+    } else {
+      // If the user hasn't liked the crag, add the like
+      await User.findByIdAndUpdate(_id, {
+        $push: { favourites: crag._id }
+      });
+
+      // Increase the crag's like count
+      await Crags.findByIdAndUpdate(crag._id, {
+        $inc: { likeCount: 1 }
+      });
+    }
+
+    // Send the updated like count back to the frontend
+    const updatedCrag = await Crags.findById(id);
+    res.status(200).json({ likesCount: updatedCrag.likeCount });
+  } catch (error) {
+    console.log('An error occurred while handling the like/unlike', error);
+    res.status(500).json({
+      error: 'An error occurred while handling the like/unlike operation'
+    });
+  }
+}); */
 
 module.exports = router;

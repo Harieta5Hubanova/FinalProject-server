@@ -33,7 +33,8 @@ const userSchema = new Schema({
     enum: ['Beginner', 'Intermediate', 'Advanced'], // Add other possible values
     required: false
   },
-  equipment: Boolean
+  equipment: Boolean,
+  favourites: [{ type: Schema.Types.ObjectId, ref: 'Crags' }]
 });
 const User = model('User', userSchema);
 

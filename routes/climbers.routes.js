@@ -6,7 +6,7 @@ const User = require('../models/User.model');
 
 router.get('/climbers', async (req, res, next) => {
   try {
-    const allClimbers = await User.find({}, 'name');
+    const allClimbers = await User.find({});
     res.json({ allClimbers });
   } catch (error) {
     console.log('An error occurred getting all climbers', error);
