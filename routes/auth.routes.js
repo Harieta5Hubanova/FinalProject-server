@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const fileUploader = require('../config/cloudinary.config');
 
 // ℹ️ Handles password encryption
 const bcrypt = require('bcrypt');
@@ -108,10 +109,11 @@ router.post('/login', (req, res, next) => {
 
       if (passwordCorrect) {
         // Deconstruct the user object to omit the password
-        const { _id, email, name, imageUrl } = foundUser;
+        const { _id, email, name, imageUrl, role, favourites } = foundUser;
 
         // Create an object that will be set as the token payload
-        const payload = { _id, email, name, imageUrl };
+
+        const payload = { _id, email, name, imageUrl, role, favourites };
 
         // Create a JSON Web Token and sign it
         const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
@@ -144,6 +146,8 @@ router.put('/profile', isAuthenticated, async (req, res, next) => {
     const { name, surname, imageUrl, country, city, dob, level, equipment } =
       req.body;
 
+    console.log(equipment);
+
     // Check if the provided id is a valid mongoose id
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       return res.status(404).json({ message: 'Specified id is not valid' });
@@ -168,13 +172,13 @@ router.put('/profile', isAuthenticated, async (req, res, next) => {
     if (!updatedProfile) {
       return res
         .status(404)
-        .json({ message: 'No project found with specific id' });
+        .json({ message: 'No profile found with specific id' });
     }
 
     res.json(updatedProfile);
   } catch (error) {
-    console.log('An error occurred updating the project', error);
-    next(error);
+    console.log('An error occurred updating the profile', error);
+    // next(error);
   }
 });
 

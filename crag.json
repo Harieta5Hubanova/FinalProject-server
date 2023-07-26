@@ -9,7 +9,9 @@
       "longitude": "10"
     },
     "grade": "5",
-    "description": ""
+    "description": "",
+    "published": false,
+    "likeCount": 0
   },
   {
     "name": "Gaivota esotérica",
@@ -21,7 +23,9 @@
       "longitude": "20"
     },
     "grade": "6a",
-    "description": ""
+    "description": "",
+    "published": false,
+    "likeCount": 0
   },
   {
     "name": "Moura Encantada",
@@ -30,7 +34,9 @@
     "country": "Portugal",
     "coordinates": { "latitude": "30", "longitude": "30" },
     "grade": "6c+",
-    "description": ""
+    "description": "",
+    "published": false,
+    "likeCount": 0
   },
   {
     "name": "Carpe Diem",
@@ -39,6 +45,8 @@
     "country": "Portugal",
     "coordinates": { "latitude": "40", "longitude": "40" },
     "grade": "6c",
-    "description": ""
+    "description": "",
+    "published": false,
+    "likeCount": 0
   }
 ]

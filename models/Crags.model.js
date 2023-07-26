@@ -9,8 +9,8 @@ const cragsSchema = new Schema(
     imageUrl: String,
     description: String,
     area: { type: Schema.Types.ObjectId, ref: 'Area' },
-    comment: { type: Schema.Types.ObjectId, ref: 'Comment' },
-    published: Boolean,
+    comment: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
+    published: { type: Boolean, default: false },
     likeCount: Number
   },
   {

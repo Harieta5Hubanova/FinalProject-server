@@ -4,6 +4,8 @@ const Area = require('../models/Area.model');
 const User = require('../models/User.model');
 const mongoose = require('mongoose');
 const fileUploader = require('../config/cloudinary.config');
+const { isAuthenticated } = require('../middleware/jwt.middleware');
+const Comment = require('../models/Comment.model');
 
 // Create a new
 
@@ -28,11 +30,22 @@ router.post('/add-crag', async (req, res, next) => {
   }
 });
 
-//Retrieves all Crags
+//Retrieves all Crags that have been approved by admin
 router.get('/crags', async (req, res, next) => {
   try {
     //we need to populate the tasks to get all the info
-    const allCrags = await Crags.find().populate('area');
+    const allCrags = await Crags.find({ published: true }).populate('area');
+    res.json(allCrags);
+  } catch (error) {
+    console.log('An error occurred getting all routes', error);
+    next(error);
+  }
+});
+// Retrieves all Crags that are published by regular users
+router.get('/unpublished-crags', async (req, res, next) => {
+  try {
+    //we need to populate the tasks to get all the info
+    const allCrags = await Crags.find({ published: false }).populate('area');
     res.json(allCrags);
   } catch (error) {
     console.log('An error occurred getting all routes', error);
@@ -48,7 +61,7 @@ router.get('/crags/:id', async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Specified  id is is not valid' });
     }
-    const crag = await Crags.findById(id).populate('area');
+    const crag = await Crags.findById(id).populate(['area', 'comment']);
 
     if (!crag) {
       return res
@@ -89,6 +102,41 @@ router.put('/crags/:id', async (req, res, next) => {
   }
 });
 
+//Comments
+router.post('/crags/:id/comments', async (req, res, next) => {
+  const { id } = req.params;
+  const { author, comment } = req.body;
+  try {
+    //check if provided id is a valid mongoose id
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ message: 'Spedified id is not valid' });
+    }
+    const newComment = await Comment.create({
+      author: author,
+      comment
+    });
+    const updatedCrag = await Crags.findByIdAndUpdate(
+      id,
+      {
+        $push: {
+          comment: newComment._id
+        }
+      },
+      { new: true } //we need to pass this to receive the updated value
+    ).populate('comment');
+    if (!updatedCrag) {
+      return res
+        .status(404)
+        .json({ message: 'No climbing route found with specific id' });
+    }
+
+    res.json(updatedCrag);
+  } catch (error) {
+    console.log('An error occurred while adding the comment', error);
+    next(error);
+  }
+});
+
 // deletes the specified crag by id
 router.delete('/crags/:id', async (req, res, next) => {
   const { id } = req.params;
@@ -108,7 +156,7 @@ router.delete('/crags/:id', async (req, res, next) => {
 // route that receives the image, sends it to Cloudinary and returns teh imageUrl
 router.post('/upload', fileUploader.single('file'), (req, res, next) => {
   try {
-    res.json({ imgUrl: req.file.path });
+    res.json({ imageUrl: req.file.path });
   } catch (error) {
     res.status(500).json({ message: 'An error occured uploading the image' });
     next(error);
@@ -128,7 +176,7 @@ router.get('/area', async (req, res, next) => {
 
 //Favourites
 
-router.put('/crags/favourites/:id', async (req, res, next) => {
+router.put('/crags/favourites/:id', isAuthenticated, async (req, res, next) => {
   const { id } = req.params;
   const { _id } = req.payload;
   try {
@@ -160,6 +208,25 @@ router.put('/crags/favourites/:id', async (req, res, next) => {
     });
   } catch (error) {
     console.log('An error occurred getting the favourites', error);
+    next(error);
+  }
+});
+
+//Publish routes as admin
+router.put('/unpublished-crags/:id', async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ message: 'Specified id is not valid' });
+    }
+    await Crags.findByIdAndUpdate(id, {
+      published: true
+    });
+
+    res.status(201).end();
+  } catch (error) {
+    console.log('An error occured trying to publish the route', error);
     next(error);
   }
 });

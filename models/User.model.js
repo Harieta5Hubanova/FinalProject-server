@@ -30,7 +30,7 @@ const userSchema = new Schema({
   dob: { type: String, required: false },
   level: {
     type: String,
-    enum: ['Beginner', 'Intermediate', 'Advanced'], // Add other possible values
+    enum: ['Beginner', 'Intermediate', 'Advanced', 'Pro'], // Add other possible values
     required: false
   },
   equipment: Boolean,
