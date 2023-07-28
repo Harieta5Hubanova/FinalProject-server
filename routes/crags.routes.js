@@ -53,7 +53,7 @@ router.get('/unpublished-crags', async (req, res, next) => {
   }
 });
 
-//Retrieves a specific crag by id
+//Retrieves a specific crag by id => important for the populate properties
 router.get('/crags/:id', async (req, res, next) => {
   const { id } = req.params;
   try {
@@ -61,8 +61,17 @@ router.get('/crags/:id', async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Specified  id is is not valid' });
     }
-    const crag = await Crags.findById(id).populate(['area', 'comment']);
+    const crag = await Crags.findById(id)
+      .populate('area comment')
+      .populate({
+        path: 'comment',
+        populate: {
+          path: 'author',
+          model: 'User'
+        }
+      });
 
+    console.log(crag.comment);
     if (!crag) {
       return res
         .status(404)
@@ -153,10 +162,11 @@ router.delete('/crags/:id', async (req, res, next) => {
   }
 });
 
-// route that receives the image, sends it to Cloudinary and returns teh imageUrl
+// route that receives the image, sends it to Cloudinary and returns the imageUrl
 router.post('/upload', fileUploader.single('file'), (req, res, next) => {
   try {
-    res.json({ imageUrl: req.file.path });
+    const imageUrl = req.file.path;
+    res.json({ imageUrl });
   } catch (error) {
     res.status(500).json({ message: 'An error occured uploading the image' });
     next(error);

@@ -21,12 +21,12 @@ router.get('/climbers/:id', async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Specified  id is is not valid' });
     }
-    const climber = await User.findById(id);
+    const climber = await User.findById(id).populate('favourites');
+    console.log(climber);
     if (!climber) {
       return res.status(404).json({ message: 'No user found with this id' });
     }
 
-    /* res.json(climber); */
     res.json(climber);
   } catch (error) {
     console.log('An error occured fetching the profile', error);
@@ -48,6 +48,36 @@ router.post('/upload', fileUploader.single('file'), async (req, res, next) => {
   } catch (error) {
     res.status(500).json({ message: 'An error occurred uploading the image' });
     next(error);
+  }
+});
+
+const EMAIL_USER = 'ettygofretti@gmail.com';
+const EMAIL_PASSWORD = '';
+
+const transporter = nodemailer.createTransport({
+  service: 'Gmail',
+  auth: {
+    user: EMAIL_USER,
+    pass: EMAIL_PASSWORD
+  }
+});
+router.post('/send-email', async (req, res) => {
+  try {
+    const { toEmail, subject, message } = req.body;
+
+    const mailOptions = {
+      from: EMAIL_USER,
+      to: toEmail,
+      subject: subject,
+      text: message
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({ message: 'Email sent successfully!' });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({ error: 'Failed to send email' });
   }
 });
 
