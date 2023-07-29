@@ -165,8 +165,7 @@ router.delete('/crags/:id', async (req, res, next) => {
 // route that receives the image, sends it to Cloudinary and returns the imageUrl
 router.post('/upload', fileUploader.single('file'), (req, res, next) => {
   try {
-    const imageUrl = req.file.path;
-    res.json({ imageUrl });
+    res.json({ imageUrl: req.file.path });
   } catch (error) {
     res.status(500).json({ message: 'An error occured uploading the image' });
     next(error);
